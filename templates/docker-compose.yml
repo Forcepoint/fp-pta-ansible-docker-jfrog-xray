@@ -1,0 +1,137 @@
+version: '3'
+services:
+  router:
+    image: {{ docker_jfrog_xray_docker }}/jfrog/router:{{ docker_jfrog_xray_tag_jfrog_router }}
+    container_name: xray_router
+    user: "{{ docker_jfrog_xray_env_xray_user }}:{{ docker_jfrog_xray_env_xray_user }}"
+    environment:
+      - JF_ROUTER_TOPOLOGY_LOCAL_REQUIREDSERVICETYPES=jfxr,jfxidx,jfxana,jfxpst
+      - JF_ROUTER_ENTRYPOINTS_EXTERNALPORT={{ docker_jfrog_xray_env_external_port }}
+    ports:
+      - "{{ docker_jfrog_xray_env_external_port }}:{{ docker_jfrog_xray_env_external_port }}" # for router communication
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - "{{ docker_jfrog_xray_data }}/var:/var/opt/jfrog/router"
+    restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "10"
+  xray-server:
+    image: {{ docker_jfrog_xray_docker }}/jfrog/xray-server:{{ docker_jfrog_xray_tag_jfrog_xray }}
+    container_name: xray_server
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - "{{ docker_jfrog_xray_data }}/var:/var/opt/jfrog/xray"
+    restart: always
+    network_mode: service:router
+    ulimits:
+      nproc: 65535
+      nofile:
+        hard: 40000
+        soft: 32000
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "10"
+  xray-indexer:
+    image: {{ docker_jfrog_xray_docker }}/jfrog/xray-indexer:{{ docker_jfrog_xray_tag_jfrog_xray }}
+    container_name: xray_indexer
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - "{{ docker_jfrog_xray_data }}/var:/var/opt/jfrog/xray"
+    restart: always
+    network_mode: service:router
+    ulimits:
+      nproc: 65535
+      nofile:
+        hard: 40000
+        soft: 32000
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "10"
+  xray-analysis:
+    image: {{ docker_jfrog_xray_docker }}/jfrog/xray-analysis:{{ docker_jfrog_xray_tag_jfrog_xray }}
+    container_name: xray_analysis
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - "{{ docker_jfrog_xray_data }}/var:/var/opt/jfrog/xray"
+    restart: always
+    network_mode: service:router
+    ulimits:
+      nproc: 65535
+      nofile:
+        hard: 40000
+        soft: 32000
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "10"
+  xray-persist:
+    image: {{ docker_jfrog_xray_docker }}/jfrog/xray-persist:{{ docker_jfrog_xray_tag_jfrog_xray }}
+    container_name: xray_persist
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - "{{ docker_jfrog_xray_data }}/var:/var/opt/jfrog/xray"
+    restart: always
+    network_mode: service:router
+    ulimits:
+      nproc: 65535
+      nofile:
+        hard: 40000
+        soft: 32000
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "10"
+  rabbitmq:
+    image: {{ docker_jfrog_xray_docker }}/jfrog/xray-rabbitmq:{{ docker_jfrog_xray_tag_jfrog_rabbitmq }}
+    container_name: xray_rabbitmq
+    hostname: {{ inventory_hostname }}
+    entrypoint: ""
+    command: /bin/bash -c " (/setRabbitCluster.sh &) && docker-entrypoint.sh 'rabbitmq-server'"
+    ports:
+      - "{{ ansible_default_ipv4.address }}:5672:5672"
+      - "15672:15672"
+      - "4369:4369"
+      - "{{ ansible_default_ipv4.address }}:25672:25672"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - "{{ docker_jfrog_xray_data }}/app/third-party/rabbitmq/setRabbitCluster.sh:/setRabbitCluster.sh"
+      - "{{ docker_jfrog_xray_data }}/app/third-party/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf"
+      - "{{ docker_jfrog_xray_data }}/var/data/rabbitmq:/var/lib/rabbitmq"
+    restart: always
+    extra_hosts:
+      - "{{ docker_jfrog_xray_env_rabbitmq_active_node_name }}:{{ docker_jfrog_xray_env_rabbitmq_active_node_ip }}"
+    environment:
+      - JF_SHARED_RABBITMQ_ACTIVE_NODE_NAME={{ docker_jfrog_xray_env_rabbitmq_active_node_name }}
+      - JF_SHARED_RABBITMQ_CLEAN=N # should be in sync with shared.rabbitMq.clean
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "10"
+  postgres:
+    image: {{ docker_jfrog_xray_docker }}/postgres:{{ docker_jfrog_xray_postgresql_tag }}
+    container_name: {{ docker_jfrog_xray_docker_compose_postgres_container_name }}
+    environment:
+      - POSTGRES_DB={{ docker_jfrog_xray_postgres_db_name }}
+      - POSTGRES_USER={{ docker_jfrog_xray_postgres_user }}
+      - POSTGRES_PASSWORD={{ docker_jfrog_xray_postgres_password }}
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - "{{ docker_jfrog_xray_data }}/{{ docker_jfrog_xray_postgres_data }}:/var/lib/postgresql/data"
+    ports:
+      - "{{ ansible_default_ipv4.address }}:5432:5432"
+    restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "10"

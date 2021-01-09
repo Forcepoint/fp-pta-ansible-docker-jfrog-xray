@@ -78,7 +78,7 @@
 - name: bring up the docker instance for postgresql
   become: yes
   ansible.builtin.shell:
-    cmd: docker-compose start postgres
+    cmd: docker-compose start {{ docker_jfrog_xray_docker_compose_postgres_container_name }}
     chdir: "{{ docker_jfrog_xray_docker_compose_folder }}"
     executable: /bin/bash
   register: docker_jfrog_xray_compose_postgresql_result

@@ -78,7 +78,7 @@
 - name: bring up the docker instance for postgresql
   become: yes
   ansible.builtin.shell:
-    cmd: docker-compose start postgres
+    cmd: docker-compose up --detach postgres
     chdir: "{{ docker_jfrog_xray_docker_compose_folder }}"
     executable: /bin/bash
   register: docker_jfrog_xray_compose_postgresql_result
@@ -90,7 +90,7 @@
 - name: bring up the all the docker containers
   become: yes
   ansible.builtin.shell:
-    cmd: docker-compose start
+    cmd: docker-compose up --detach
     chdir: "{{ docker_jfrog_xray_docker_compose_folder }}"
     executable: /bin/bash
 

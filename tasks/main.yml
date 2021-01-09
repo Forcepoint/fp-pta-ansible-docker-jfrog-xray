@@ -48,7 +48,7 @@
 - name: pull the postgres docker image
   become: yes
   docker_image:
-    name: "{{ docker_jfrog_xray_docker }}/postgres:{{ docker_jfrog_xray_postgresql_tag }}"
+    name: "{{ docker_jfrog_xray_docker }}/postgres:{{ docker_jfrog_xray_tag_jfrog_postgres }}"
     source: pull
   register: docker_jfrog_xray_postgresql_pull_result
 

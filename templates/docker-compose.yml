@@ -118,7 +118,7 @@ services:
         max-size: "50m"
         max-file: "10"
   postgres:
-    image: {{ docker_jfrog_xray_docker }}/postgres:{{ docker_jfrog_xray_postgresql_tag }}
+    image: {{ docker_jfrog_xray_docker }}/postgres:{{ docker_jfrog_xray_tag_jfrog_postgres }}
     container_name: {{ docker_jfrog_xray_docker_compose_postgres_container_name }}
     environment:
       - POSTGRES_DB={{ docker_jfrog_xray_postgres_db_name }}

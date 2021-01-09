@@ -9,8 +9,8 @@
     path: "{{ docker_jfrog_xray_data }}/{{ item }}"
     state: directory
     mode: 0700
-    owner: 1035
-    group: 1035
+    owner: "1035"
+    group: "1035"
     recurse: yes
   with_items:
     - var/data
@@ -22,8 +22,8 @@
     path: "{{ docker_jfrog_xray_data }}/{{ item }}"
     state: directory
     mode: 0700
-    owner: 999
-    group: 999
+    owner: "999"
+    group: "999"
     recurse: yes
   with_items:
     - app/third-party/rabbitmq

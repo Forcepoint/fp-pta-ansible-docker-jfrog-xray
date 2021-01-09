@@ -66,14 +66,14 @@
 - name: start just the postgresql container
   become: yes
   ansible.builtin.shell:
-    cmd: docker-compose start {{ docker_jfrog_xray_docker_compose_postgres_container_name }}
+    cmd: docker-compose start postgres
     chdir: "{{ docker_jfrog_xray_docker_compose_folder }}"
     executable: /bin/bash
 
 - name: copy the data dump into the container
   become: yes
   ansible.builtin.shell:
-    cmd: docker cp {{ docker_jfrog_xray_docker_compose_folder }}/dump.sql {{ docker_jfrog_xray_docker_compose_postgres_container_name }}:/tmp
+    cmd: docker cp {{ docker_jfrog_xray_docker_compose_folder }}/dump.sql postgresql:/tmp
     executable: /bin/bash
 
 - name: wait 15 seconds to ensure the database has had time to startup
@@ -83,7 +83,7 @@
 - name: import the postgres data
   become: yes
   ansible.builtin.shell:
-    cmd: docker exec {{ docker_jfrog_xray_docker_compose_postgres_container_name }} sh -c 'psql -U {{ docker_jfrog_xray_postgres_user }} -d {{ docker_jfrog_xray_postgres_default_db }} < /tmp/dump.sql'
+    cmd: docker exec postgresql sh -c 'psql -U {{ docker_jfrog_xray_postgres_user }} -d {{ docker_jfrog_xray_postgres_default_db }} < /tmp/dump.sql'
     executable: /bin/bash
 
 - name: wait 15 seconds to ensure the changes have all been imported

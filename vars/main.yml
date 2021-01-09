@@ -9,6 +9,6 @@ docker_jfrog_xray_env_rabbitmq_active_node_name: None
 docker_jfrog_xray_env_rabbitmq_active_node_ip: 127.0.0.1
 docker_jfrog_xray_postgres_db_name: xraydb
 docker_jfrog_xray_postgres_user: xray
-docker_jfrog_xray_docker_compose_not_postgres: xray_router xray_server xray_indexer xray_analysis xray_persist xray_rabbitmq
+docker_jfrog_xray_docker_compose_not_postgres: router xray-server xray-indexer xray-analysis xray-persist rabbitmq
 docker_jfrog_xray_docker_compose_postgres_container_name: xray_postgres
 docker_jfrog_xray_postgres_data: var/data/postgres/data

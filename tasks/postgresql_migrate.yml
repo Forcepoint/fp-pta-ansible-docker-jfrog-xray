@@ -3,77 +3,86 @@
 # https://medium.com/better-programming/how-to-upgrade-your-postgresql-version-using-docker-d1e81dbbbdf9
 # https://www.postgresql.org/docs/13/upgrading.html
 
-- name: stop everything but postgres
-  become: yes
+- name: get docker-compose-postgres.yaml contents
+  slurp:
+    src: "{{ docker_jfrog_xray_docker_compose_folder }}/docker-compose-postgres.yaml"
+  register: docker_jfrog_xray_slurp_docker_compose_postgres
+
+- name: get the some info from docker-compose-postgres.yaml
+  ansible.builtin.set_fact:
+    docker_jfrog_xray_postgres_container_name: "{{ docker_jfrog_xray_slurp_docker_compose_postgres['content'] | b64decode | regex_findall('container_name: (.+)') | first }}"
+    docker_jfrog_xray_postgres_db_name: "{{ docker_jfrog_xray_slurp_docker_compose_postgres['content'] | b64decode | regex_findall('POSTGRES_DB=(.+)') | first }}"
+    docker_jfrog_xray_postgres_user: "{{ docker_jfrog_xray_slurp_docker_compose_postgres['content'] | b64decode | regex_findall('POSTGRES_USER=(.+)') | first }}"
+
+- name: stop the xray containers
   ansible.builtin.shell:
-    cmd: docker-compose stop {{ docker_jfrog_xray_docker_compose_not_postgres }}
+    cmd: docker-compose stop --project-name xray
+    chdir: "{{ docker_jfrog_xray_docker_compose_folder }}"
+    executable: /bin/bash
+
+- name: stop the rabbitmq container
+  ansible.builtin.shell:
+    cmd: docker-compose stop --file docker-compose-rabbitmq.yaml --project-name xray-rabbitmq
     chdir: "{{ docker_jfrog_xray_docker_compose_folder }}"
     executable: /bin/bash
 
 - name: ensure the dump file is not present
-  become: yes
   ansible.builtin.file:
     path: "{{ docker_jfrog_xray_docker_compose_folder }}/dump.sql"
     state: absent
 
 # For some reason using docker-compose exec here throws a python error.
 - name: export the postgres data
-  become: yes
   ansible.builtin.shell:
-    cmd: docker exec {{ docker_jfrog_xray_docker_compose_postgres_container_name }} pg_dumpall -U {{ docker_jfrog_xray_postgres_user }} > dump.sql
+    cmd: docker exec {{ docker_jfrog_xray_postgres_container_name }} pg_dumpall -U {{ docker_jfrog_xray_postgres_user }} > dump.sql
     chdir: "{{ docker_jfrog_xray_docker_compose_folder }}"
     executable: /bin/bash
 
-- name: stop all the docker-compose containers
-  become: yes
+- name: stop the postgres container
   ansible.builtin.shell:
-    cmd: docker-compose stop
+    cmd: docker-compose stop --file docker-compose-postgres.yaml --project-name xray-postgres
     chdir: "{{ docker_jfrog_xray_docker_compose_folder }}"
     executable: /bin/bash
 
 - name: delete any backup of the mapped volume for postgresql
-  become: yes
   ansible.builtin.file:
-    path: "{{ docker_jfrog_xray_data }}/postgresql.bak"
+    path: "{{ docker_jfrog_xray_postgres_backup_dir }}"
     state: absent
 
 - name: backup the mapped volume for postgresql
-  become: yes
   ansible.builtin.copy:
-    src: "{{ docker_jfrog_xray_data }}/{{ docker_jfrog_xray_postgres_data }}"
+    src: "{{ docker_jfrog_xray_postgres_data_dir }}"
     remote_src: yes
-    dest: "{{ docker_jfrog_xray_data }}/postgresql.bak"
+    dest: "{{ docker_jfrog_xray_postgres_backup_dir }}"
 
 - name: delete the mapped volume for postgresql
-  become: yes
   ansible.builtin.file:
-    path: "{{ docker_jfrog_xray_data }}/{{ docker_jfrog_xray_postgres_data }}"
+    path: "{{ docker_jfrog_xray_postgres_data_dir }}"
     state: absent
 
 - name: recreate the folder for the postgresql mapped volume
   become: yes
   file:
-    path: "{{ docker_jfrog_xray_data }}/{{ docker_jfrog_xray_postgres_data }}"
+    path: "{{ docker_jfrog_xray_postgres_data_dir }}"
     state: directory
     mode: 0700
+    owner: "{{ docker_jfrog_xray_user }}"
+    group: "{{ docker_jfrog_xray_user }}"
 
 - name: ensure the data dump file is readable
-  become: yes
   ansible.builtin.file:
     path: "{{ docker_jfrog_xray_docker_compose_folder }}/dump.sql"
     mode: 0444
 
-- name: start just the postgresql container
-  become: yes
+- name: bring up docker postgres
   ansible.builtin.shell:
-    cmd: docker-compose up --detach postgres
+    cmd: docker-compose up --detach --file docker-compose-postgres.yaml --project-name xray-postgres
     chdir: "{{ docker_jfrog_xray_docker_compose_folder }}"
     executable: /bin/bash
 
 - name: copy the data dump into the container
-  become: yes
   ansible.builtin.shell:
-    cmd: docker cp {{ docker_jfrog_xray_docker_compose_folder }}/dump.sql postgresql:/tmp
+    cmd: docker cp {{ docker_jfrog_xray_docker_compose_folder }}/dump.sql {{ docker_jfrog_xray_postgres_container_name }}:/tmp
     executable: /bin/bash
 
 - name: wait 15 seconds to ensure the database has had time to startup
@@ -81,17 +90,6 @@
     seconds: 15
 
 - name: import the postgres data
-  become: yes
   ansible.builtin.shell:
-    cmd: docker exec postgresql sh -c 'psql -U {{ docker_jfrog_xray_postgres_user }} -d {{ docker_jfrog_xray_postgres_default_db }} < /tmp/dump.sql'
+    cmd: docker exec {{ docker_jfrog_xray_postgres_container_name }} sh -c 'psql -U {{ docker_jfrog_xray_postgres_user }} -d {{ docker_jfrog_xray_postgres_db_name }} < /tmp/dump.sql'
     executable: /bin/bash
-
-- name: wait 15 seconds to ensure the changes have all been imported
-  pause:
-    seconds: 15
-
-- name: delete the data dump file from the docker compose
-  become: yes
-  ansible.builtin.file:
-    path: "{{ docker_jfrog_xray_docker_compose_folder }}/dump.sql"
-    state: absent

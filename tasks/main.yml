@@ -38,9 +38,26 @@
     src: "{{ docker_jfrog_xray_docker_compose_folder }}/docker-compose.yaml"
   register: docker_jfrog_xray_slurp_docker_compose
 
-- name: get the some info from docker-compose.yaml
+- name: convert the slurped docker-compose to yaml
   ansible.builtin.set_fact:
-    docker_jfrog_xray_router_container_name: "{{ docker_jfrog_xray_slurp_docker_compose['content'] | b64decode | regex_findall('container_name: (.+)') | first }}"
+    docker_jfrog_xray_docker_compose_yaml: "{{ docker_jfrog_xray_slurp_docker_compose['content'] | b64decode | from_yaml }}"
+
+- name: remove the mongodb service
+  ansible.builtin.set_fact:
+    docker_jfrog_xray_docker_compose_clean_yaml:
+      version: "{{ docker_jfrog_xray_docker_compose_yaml['version'] }}"
+      services: "{{ {} | combine({item.key: item.value})}}"
+  when: "{{ item.key not in ['mongodb'] }}"
+  with_dict: "{{ docker_jfrog_xray_docker_compose_yaml['services'] }}"
+
+- name: write the docker-compose.yaml back out
+  ansible.builtin.copy:
+    content: "{{ docker_jfrog_xray_docker_compose_clean_yaml | to_nice_yaml }}"
+    dest: "{{ docker_jfrog_xray_docker_compose_folder }}/docker-compose.yaml"
+
+- name: get the router container name
+  ansible.builtin.set_fact:
+    docker_jfrog_xray_router_container_name: "{{ docker_jfrog_xray_docker_compose_clean_yaml | regex_findall('container_name: (.+)') | first }}"
 
 - name: ensure the container name is for router
   ansible.builtin.assert:

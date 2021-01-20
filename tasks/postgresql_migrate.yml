@@ -8,11 +8,21 @@
     src: "{{ docker_jfrog_xray_docker_compose_folder }}/docker-compose-postgres.yaml"
   register: docker_jfrog_xray_slurp_docker_compose_postgres
 
-- name: get the some info from docker-compose-postgres.yaml
+- name: convert the slurped docker-compose to yaml
   ansible.builtin.set_fact:
-    docker_jfrog_xray_postgres_container_name: "{{ docker_jfrog_xray_slurp_docker_compose_postgres['content'] | b64decode | regex_findall('container_name: (.+)') | first }}"
-    docker_jfrog_xray_postgres_db_name: "{{ docker_jfrog_xray_slurp_docker_compose_postgres['content'] | b64decode | regex_findall('POSTGRES_DB=(.+)') | first }}"
-    docker_jfrog_xray_postgres_user: "{{ docker_jfrog_xray_slurp_docker_compose_postgres['content'] | b64decode | regex_findall('POSTGRES_USER=(.+)') | first }}"
+    docker_jfrog_xray_docker_compose_postgres_yaml: "{{ docker_jfrog_xray_slurp_docker_compose_postgres['content'] | b64decode | from_yaml }}"
+
+- name: get the postgres db name
+  ansible.builtin.set_fact:
+    docker_jfrog_xray_postgres_db_name: "{{ item | regex_search('POSTGRES_DB=(.+)') }}"
+  with_items: "{{ docker_jfrog_xray_docker_compose_postgres_yaml['services']['postgres']['environment'] }}"
+  when: '"POSTGRES_DB=" in item'
+
+- name: get the postgres user name
+  ansible.builtin.set_fact:
+    docker_jfrog_xray_postgres_user: "{{ item | regex_search('POSTGRES_USER=(.+)') }}"
+  with_items: "{{ docker_jfrog_xray_docker_compose_postgres_yaml['services']['postgres']['environment'] }}"
+  when: '"POSTGRES_USER=" in item'
 
 - name: stop the xray containers
   ansible.builtin.shell:
@@ -34,7 +44,7 @@
 # For some reason using docker-compose exec here throws a python error.
 - name: export the postgres data
   ansible.builtin.shell:
-    cmd: docker exec {{ docker_jfrog_xray_postgres_container_name }} pg_dumpall -U {{ docker_jfrog_xray_postgres_user }} > dump.sql
+    cmd: docker exec {{ docker_jfrog_xray_docker_compose_postgres_yaml['services']['postgres']['container_name'] }} pg_dumpall -U {{ docker_jfrog_xray_postgres_user }} > dump.sql
     chdir: "{{ docker_jfrog_xray_docker_compose_folder }}"
     executable: /bin/bash
 
@@ -76,13 +86,13 @@
 
 - name: bring up docker postgres
   ansible.builtin.shell:
-    cmd: docker-compose up --detach --file docker-compose-postgres.yaml --project-name xray-postgres
+    cmd: docker-compose --file docker-compose-postgres.yaml --project-name xray-postgres up --detach
     chdir: "{{ docker_jfrog_xray_docker_compose_folder }}"
     executable: /bin/bash
 
 - name: copy the data dump into the container
   ansible.builtin.shell:
-    cmd: docker cp {{ docker_jfrog_xray_docker_compose_folder }}/dump.sql {{ docker_jfrog_xray_postgres_container_name }}:/tmp
+    cmd: docker cp {{ docker_jfrog_xray_docker_compose_folder }}/dump.sql {{ docker_jfrog_xray_docker_compose_postgres_yaml['services']['postgres']['container_name'] }}:/tmp
     executable: /bin/bash
 
 - name: wait 15 seconds to ensure the database has had time to startup
@@ -91,5 +101,5 @@
 
 - name: import the postgres data
   ansible.builtin.shell:
-    cmd: docker exec {{ docker_jfrog_xray_postgres_container_name }} sh -c 'psql -U {{ docker_jfrog_xray_postgres_user }} -d {{ docker_jfrog_xray_postgres_db_name }} < /tmp/dump.sql'
+    cmd: docker exec {{ docker_jfrog_xray_docker_compose_postgres_yaml['services']['postgres']['container_name'] }} sh -c 'psql -U {{ docker_jfrog_xray_postgres_user }} -d {{ docker_jfrog_xray_postgres_db_name }} < /tmp/dump.sql'
     executable: /bin/bash

@@ -167,19 +167,19 @@
 
 - name: pull docker postgres
   ansible.builtin.shell:
-    cmd: docker-compose pull --file docker-compose-postgres.yaml --project-name xray-postgres
+    cmd: docker-compose --file docker-compose-postgres.yaml --project-name xray-postgres pull
     chdir: "{{ docker_jfrog_xray_docker_compose_folder }}"
     executable: /bin/bash
 
 - name: pull docker rabbitmq
   ansible.builtin.shell:
-    cmd: docker-compose pull --file docker-compose-rabbitmq.yaml --project-name xray-rabbitmq
+    cmd: docker-compose --file docker-compose-rabbitmq.yaml --project-name xray-rabbitmq pull
     chdir: "{{ docker_jfrog_xray_docker_compose_folder }}"
     executable: /bin/bash
 
 - name: pull docker xray
   ansible.builtin.shell:
-    cmd: docker-compose pull --project-name xray
+    cmd: docker-compose --project-name xray pull
     chdir: "{{ docker_jfrog_xray_docker_compose_folder }}"
     executable: /bin/bash
 
@@ -189,7 +189,7 @@
 
 - name: bring up docker postgres
   ansible.builtin.shell:
-    cmd: docker-compose up --detach --file docker-compose-postgres.yaml --project-name xray-postgres
+    cmd: docker-compose --file docker-compose-postgres.yaml --project-name xray-postgres up --detach
     chdir: "{{ docker_jfrog_xray_docker_compose_folder }}"
     executable: /bin/bash
 
@@ -199,7 +199,7 @@
 
 - name: bring up docker rabbitmq
   ansible.builtin.shell:
-    cmd: docker-compose up --detach --file docker-compose-rabbitmq.yaml --project-name xray-rabbitmq
+    cmd: docker-compose --file docker-compose-rabbitmq.yaml --project-name xray-rabbitmq up --detach
     chdir: "{{ docker_jfrog_xray_docker_compose_folder }}"
     executable: /bin/bash
 
@@ -209,7 +209,7 @@
 
 - name: bring up docker xray
   ansible.builtin.shell:
-    cmd: docker-compose up --detach --project-name xray
+    cmd: docker-compose --project-name xray up --detach
     chdir: "{{ docker_jfrog_xray_docker_compose_folder }}"
     executable: /bin/bash
 

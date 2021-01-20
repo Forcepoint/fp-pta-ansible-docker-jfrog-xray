@@ -41,30 +41,24 @@
 - name: convert the slurped docker-compose to yaml
   ansible.builtin.set_fact:
     docker_jfrog_xray_docker_compose_yaml: "{{ docker_jfrog_xray_slurp_docker_compose['content'] | b64decode | from_yaml }}"
+    docker_jfrog_xray_docker_compose_services_yaml: {}
 
 - name: remove the mongodb service
   ansible.builtin.set_fact:
-    docker_jfrog_xray_docker_compose_clean_yaml:
-      version: "{{ docker_jfrog_xray_docker_compose_yaml['version'] }}"
-      services: "{{ {} | combine({item.key: item.value})}}"
+    docker_jfrog_xray_docker_compose_services_yaml: "{{ docker_jfrog_xray_docker_compose_services_yaml | combine({item.key: item.value})}}"
   when: "{{ item.key not in ['mongodb'] }}"
   with_dict: "{{ docker_jfrog_xray_docker_compose_yaml['services'] }}"
+
+- name: peice together the cleaned docker-compose yaml
+  ansible.builtin.set_fact:
+    docker_jfrog_xray_docker_compose_clean_yaml:
+      version: "{{ docker_jfrog_xray_docker_compose_yaml['version'] }}"
+      services: "{{ docker_jfrog_xray_docker_compose_services_yaml }}"
 
 - name: write the docker-compose.yaml back out
   ansible.builtin.copy:
     content: "{{ docker_jfrog_xray_docker_compose_clean_yaml | to_nice_yaml }}"
     dest: "{{ docker_jfrog_xray_docker_compose_folder }}/docker-compose.yaml"
-
-- name: get the router container name
-  ansible.builtin.set_fact:
-    docker_jfrog_xray_router_container_name: "{{ docker_jfrog_xray_docker_compose_clean_yaml | regex_findall('container_name: (.+)') | first }}"
-
-- name: ensure the container name is for router
-  ansible.builtin.assert:
-    that:
-      - "'router' in docker_jfrog_xray_router_container_name"
-    fail_msg: "The first service in the docker-compose.yml file is assumed to be for the router, but it doesn't appear so. Either the ordering changed or router is no longer in the container name."
-    success_msg: "The first service in the docker-compose.yml file is for the router."
 
 - name: remove lines with __REPLACE
   # At the time of this writing, the only one should be __REPLACE_POSTGRES_PASSWORD__ in docker-compose-postgresql.yaml
@@ -221,7 +215,7 @@
     # Using "{{ docker_jfrog_xray_data_dir }}/var/etc/security/keys/trusted" didn't work for whatever reason.
     # Dumping the certs in /etc/ssl/certs seems to work though. A mounted volume would be better, but there's already stuff in this folder, and
     # I don't want to modify the docker-compose.yml file to add the volume either. A docker copy is the best solution.
-    cmd: "docker cp {{ item }} {{ docker_jfrog_xray_router_container_name }}:/etc/ssl/certs/"
+    cmd: "docker cp {{ item }} {{ docker_jfrog_xray_docker_compose_clean_yaml['services']['router']['container_name'] }}:/etc/ssl/certs/"
     executable: /bin/bash
   with_fileglob:
     - "{{ docker_jfrog_xray_docker_compose_folder }}/certs/*"

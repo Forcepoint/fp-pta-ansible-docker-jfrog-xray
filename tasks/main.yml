@@ -1,6 +1,12 @@
 ---
 # tasks file for docker-jfrog-xray
 
+- name: clean out any previous docker_compose folder
+  become: yes
+  ansible.builtin.file:
+    path: "{{ docker_jfrog_xray_docker_compose_folder }}/"
+    state: absent
+
 - name: create the docker_compose folder
   become: yes
   ansible.builtin.file:

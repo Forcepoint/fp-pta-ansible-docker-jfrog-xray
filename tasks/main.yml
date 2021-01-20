@@ -3,7 +3,7 @@
 
 - name: create the docker_compose folder
   become: yes
-  file:
+  ansible.builtin.file:
     path: "{{ docker_jfrog_xray_docker_compose_folder }}/certs"
     state: directory
     mode: 0700
@@ -18,16 +18,17 @@
     remote_src: yes
 
 - name: copy the docker-compose files
-  copy:
+  ansible.builtin.copy:
     src: "{{ docker_jfrog_xray_docker_compose_folder }}/{{ item }}"
     dest: "{{ docker_jfrog_xray_docker_compose_folder }}/"
+    remote_src: yes
   loop:
     - templates/docker-compose.yaml
     - templates/docker-compose-postgres.yaml
     - templates/docker-compose-rabbitmq.yaml
 
 - name: get docker-compose.yaml contents
-  slurp:
+  ansible.builtin.slurp:
     src: "{{ docker_jfrog_xray_docker_compose_folder }}/docker-compose.yaml"
   register: docker_jfrog_xray_slurp_docker_compose
 
@@ -96,7 +97,7 @@
     insertafter: EOF
 
 - name: get .env contents
-  slurp:
+  ansible.builtin.slurp:
     src: "{{ docker_jfrog_xray_docker_compose_folder }}/.env"
   register: docker_jfrog_xray_slurp_env
 
@@ -118,7 +119,7 @@
 
 - name: create the application folders for xray
   become: yes
-  file:
+  ansible.builtin.file:
     path: "{{ docker_jfrog_xray_data_dir }}/{{ item }}"
     state: directory
     mode: 0700
@@ -131,7 +132,7 @@
 
 - name: create the application folders for third-party
   become: yes
-  file:
+  ansible.builtin.file:
     path: "{{ docker_jfrog_xray_data_dir }}/{{ item }}"
     state: directory
     mode: 0700
@@ -170,7 +171,7 @@
     executable: /bin/bash
 
 - name: wait 15 seconds to ensure the container is up
-  pause:
+  ansible.builtin.pause:
     seconds: 15
 
 - name: bring up docker rabbitmq
@@ -180,7 +181,7 @@
     executable: /bin/bash
 
 - name: wait 15 seconds to ensure the container is up
-  pause:
+  ansible.builtin.pause:
     seconds: 15
 
 - name: bring up docker xray

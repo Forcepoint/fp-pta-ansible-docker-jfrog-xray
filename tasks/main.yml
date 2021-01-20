@@ -14,7 +14,13 @@
 - name: download and extract the docker-compose package
   ansible.builtin.unarchive:
     src: "https://releases.jfrog.io/artifactory/jfrog-xray/xray-compose/{{ docker_jfrog_xray_version }}/jfrog-xray-{{ docker_jfrog_xray_version }}-compose.tar.gz"
-    dest: "{{ docker_jfrog_xray_docker_compose_folder }}"
+    dest: "/tmp"
+    remote_src: yes
+
+- name: put the package files in the right folder
+  ansible.builtin.copy:
+    src: "/tmp/jfrog-xray-{{ docker_jfrog_xray_version }}-compose/"
+    dest: "{{ docker_jfrog_xray_docker_compose_folder }}/"
     remote_src: yes
 
 - name: copy the docker-compose files

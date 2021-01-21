@@ -6,4 +6,4 @@
   ansible.builtin.replace:
     path: "{{ docker_jfrog_xray_docker_compose_folder }}/docker-compose-postgres.yaml"
     regexp: "__REPLACE_POSTGRES_PASSWORD__"
-    line: "${POSTGRES_PASSWORD}"
+    replace: "${POSTGRES_PASSWORD}"

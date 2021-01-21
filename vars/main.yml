@@ -1,6 +1,6 @@
 ---
 
-docker_jfrog_xray_docker_compose_folder: "{{ docker_jfrog_xray_data_dir }}/docker_compose/"
+docker_jfrog_xray_docker_compose_folder: "{{ docker_jfrog_xray_data_dir }}/docker_compose"
 docker_jfrog_xray_postgres_data_dir: "{{ docker_jfrog_xray_data_dir }}/var/data/postgres/data"
 docker_jfrog_xray_postgres_backup_dir: "{{ docker_jfrog_xray_data_dir }}/postgres.bak"
 docker_jfrog_xray_router_container_name: xray_router

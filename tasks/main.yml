@@ -42,18 +42,6 @@
 - name: add tasks to modify the .env file
   include_tasks: modify_env.yml
 
-- name: copy certificates to trust locally
-  become: yes
-  ansible.builtin.copy:
-    src: "{{ item.path }}"
-    dest: "{{ docker_jfrog_xray_docker_compose_folder }}/certs"
-    remote_src: "{{ item.remote_src }}"
-    mode: 0744
-    owner: "{{ docker_jfrog_xray_user }}"
-    group: "{{ docker_jfrog_xray_user }}"
-  loop: "{{ docker_jfrog_xray_certs_to_trust }}"
-  when: docker_jfrog_xray_certs_to_trust is defined
-
 - name: create the application folders for xray
   become: yes
   ansible.builtin.file:
@@ -66,6 +54,19 @@
   with_items:
     - var/data
     - var/etc
+    - var/certs
+
+- name: locally copy certificates to trust
+  become: yes
+  ansible.builtin.copy:
+    src: "{{ item.path }}"
+    dest: "{{ docker_jfrog_xray_data_dir }}/var/certs"
+    remote_src: "{{ item.remote_src }}"
+    mode: 0744
+    owner: "{{ docker_jfrog_xray_user }}"
+    group: "{{ docker_jfrog_xray_user }}"
+  loop: "{{ docker_jfrog_xray_certs_to_trust }}"
+  when: docker_jfrog_xray_certs_to_trust is defined
 
 - name: create the application folder for third-party
   become: yes
@@ -138,17 +139,3 @@
     cmd: docker-compose --project-name xray up --detach
     chdir: "{{ docker_jfrog_xray_docker_compose_folder }}"
     executable: /bin/bash
-
-# This must be done immediately after the xray containers are started so the certs are present in time before xray tries to communicate with Artifactory.
-- name: copy certificates to trust into the container
-  ansible.builtin.shell:
-    # https://www.jfrog.com/confluence/display/JFROG/Managing+TLS+Certificates#ManagingTLSCertificates-TrustingaSelf-SignedCertificateoraNewCA
-    # Adding the cert to the application's keystore isn't trivial (i.e. mucking with the JVM, especially if java isn't on the path).
-    # Using "{{ docker_jfrog_xray_data_dir }}/var/etc/security/keys/trusted" didn't work for whatever reason.
-    # Dumping the certs in /etc/ssl/certs seems to work though. A mounted volume would be better, but there's already stuff in this folder, and
-    # I don't want to modify the docker-compose.yml file to add the volume either. A docker copy is the best solution.
-    cmd: "docker cp {{ item }} {{ docker_jfrog_xray_docker_compose_xray_router_container_name }}:/etc/ssl/certs/"
-    executable: /bin/bash
-  with_fileglob:
-    - "{{ docker_jfrog_xray_docker_compose_folder }}/certs/*"
-  when: docker_jfrog_xray_certs_to_trust is defined

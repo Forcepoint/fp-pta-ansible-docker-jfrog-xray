@@ -55,7 +55,7 @@ Make sure you get that password and joinkey vaulted so they're not in plain text
 
     - hosts: server
       vars:
-        docker_jfrog_xray_download_host: https://artifactory.company.com/artifactory/releases.jfrog.io/
+        docker_jfrog_xray_download_host: https://artifactory.company.com/artifactory/releases.jfrog.io
         docker_jfrog_xray_version: '3.15.3'
         docker_jfrog_xray_data_dir: /home/{{ ansible_user }}/data
         docker_jfrog_xray_postgres_password: ppassword

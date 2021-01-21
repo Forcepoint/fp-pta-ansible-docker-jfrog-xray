@@ -18,7 +18,7 @@
 
 - name: download and extract the docker-compose package
   ansible.builtin.unarchive:
-    src: "{{ docker_jfrog_xray_download_host }}/jfrog-xray/xray-compose/{{ docker_jfrog_xray_version }}/jfrog-xray-{{ docker_jfrog_xray_version }}-compose.tar.gz"
+    src: "{{ docker_jfrog_xray_download_host }}/artifactory/jfrog-xray/xray-compose/{{ docker_jfrog_xray_version }}/jfrog-xray-{{ docker_jfrog_xray_version }}-compose.tar.gz"
     dest: "{{ docker_jfrog_xray_temp_download_dir.path }}"
     remote_src: yes
 

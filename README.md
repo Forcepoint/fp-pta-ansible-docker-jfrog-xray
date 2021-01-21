@@ -51,7 +51,7 @@ None
 
 ## Example Playbook
 
-Again, make sure you get that password vaulted so it's not in plain text!
+Make sure you get that password and joinkey vaulted so they're not in plain text!
 
     - hosts: server
       vars:

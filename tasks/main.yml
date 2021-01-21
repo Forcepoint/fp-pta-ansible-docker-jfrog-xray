@@ -4,24 +4,34 @@
 - name: create the docker_compose folder
   become: yes
   ansible.builtin.file:
-    path: "{{ docker_jfrog_xray_docker_compose_folder }}/certs"
+    path: "{{ docker_jfrog_xray_docker_compose_folder }}"
     state: directory
     mode: 0700
     recurse: yes
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
 
+- name: create a temp folder for the download
+  ansible.builtin.tempfile:
+    state: directory
+  register: docker_jfrog_xray_temp_download_dir
+
 - name: download and extract the docker-compose package
   ansible.builtin.unarchive:
-    src: "https://releases.jfrog.io/artifactory/jfrog-xray/xray-compose/{{ docker_jfrog_xray_version }}/jfrog-xray-{{ docker_jfrog_xray_version }}-compose.tar.gz"
-    dest: "/tmp"
+    src: "{{ docker_jfrog_xray_download_host }}/jfrog-xray/xray-compose/{{ docker_jfrog_xray_version }}/jfrog-xray-{{ docker_jfrog_xray_version }}-compose.tar.gz"
+    dest: "{{ docker_jfrog_xray_temp_download_dir.path }}"
     remote_src: yes
 
 - name: put the package files in the right folder
   ansible.builtin.copy:
-    src: "/tmp/jfrog-xray-{{ docker_jfrog_xray_version }}-compose/"
+    src: "{{ docker_jfrog_xray_temp_download_dir.path }}/jfrog-xray-{{ docker_jfrog_xray_version }}-compose/"
     dest: "{{ docker_jfrog_xray_docker_compose_folder }}/"
     remote_src: yes
+
+- name: remove the temp folder for the download
+  ansible.builtin.file:
+    path: "{{ docker_jfrog_xray_temp_download_dir.path }}"
+    state: absent
 
 - name: copy the docker-compose files
   ansible.builtin.copy:

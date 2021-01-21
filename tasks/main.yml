@@ -39,7 +39,7 @@
 - name: add tasks to modify the docker-compose-postgres.yaml file
   include_tasks: modify_docker_compose_postgres.yml
 
- name: add tasks to modify the .env file
+- name: add tasks to modify the .env file
   include_tasks: modify_env.yml
 
 - name: copy certificates to trust locally

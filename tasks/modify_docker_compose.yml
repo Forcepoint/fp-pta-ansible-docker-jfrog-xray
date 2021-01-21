@@ -1,0 +1,49 @@
+---
+
+# Treat modifying the docker-compose.yaml file like a black box. It will help keep the main.yml file simpler.
+
+- name: get docker-compose.yaml contents
+  ansible.builtin.slurp:
+    src: "{{ docker_jfrog_xray_docker_compose_folder }}/docker-compose.yaml"
+  register: docker_jfrog_xray_slurp_docker_compose
+
+- name: convert the slurped docker-compose to yaml
+  ansible.builtin.set_fact:
+    docker_jfrog_xray_docker_compose_yaml: "{{ docker_jfrog_xray_slurp_docker_compose['content'] | b64decode | from_yaml }}"
+    docker_jfrog_xray_docker_compose_services_yaml: {}
+
+- name: remove the mongodb service
+  ansible.builtin.set_fact:
+    docker_jfrog_xray_docker_compose_services_yaml: "{{ docker_jfrog_xray_docker_compose_services_yaml | combine({item.key: item.value})}}"
+  when: "{{ item.key not in ['mongodb'] }}"
+  with_dict: "{{ docker_jfrog_xray_docker_compose_yaml['services'] }}"
+
+- name: peice together the cleaned docker-compose yaml
+  ansible.builtin.set_fact:
+    docker_jfrog_xray_docker_compose_yaml_new_ver1:
+      version: "{{ docker_jfrog_xray_docker_compose_yaml['version'] }}"
+      services: "{{ docker_jfrog_xray_docker_compose_services_yaml }}"
+    docker_jfrog_xray_docker_compose_xray_router_list_envs_new:
+      - "JF_SHARED_JFROGURL=${JF_SHARED_JFROGURL}"
+      - "JF_SHARED_SECURITY_JOINKEY=${JF_SHARED_SECURITY_JOINKEY}"
+      - "JF_SHARED_NODE_IP=${JF_SHARED_NODE_IP}"
+
+- name: place the environment variables into the docker-compose structure
+  ansible.builtin.set_fact:
+    docker_jfrog_xray_docker_compose_xray_router_envs:
+      services:
+        router:
+          environment: "{{ docker_jfrog_xray_docker_compose_xray_router_list_envs_new + docker_jfrog_xray_docker_compose_yaml_new_ver1['services']['router']['environment'] }}"
+
+- name: combine the new environment variables into the docker compose
+  ansible.builtin.set_fact:
+    docker_jfrog_xray_docker_compose_yaml_new_ver2: "{{ docker_jfrog_xray_docker_compose_yaml_new_ver1 | combine(docker_jfrog_xray_docker_compose_xray_router_envs, recursive=true) }}"
+
+- name: write the docker-compose.yaml back out
+  ansible.builtin.copy:
+    content: "{{ docker_jfrog_xray_docker_compose_yaml_new_ver2 | to_nice_yaml }}"
+    dest: "{{ docker_jfrog_xray_docker_compose_folder }}/docker-compose.yaml"
+
+- name: save the router container name
+  ansible.builtin.set_fact:
+    docker_jfrog_xray_docker_compose_xray_router_container_name: "{{ docker_jfrog_xray_docker_compose_yaml_new_ver2['services']['router']['container_name'] }}"

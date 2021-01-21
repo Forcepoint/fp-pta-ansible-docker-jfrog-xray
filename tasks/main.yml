@@ -33,77 +33,14 @@
     - templates/docker-compose-postgres.yaml
     - templates/docker-compose-rabbitmq.yaml
 
-- name: get docker-compose.yaml contents
-  ansible.builtin.slurp:
-    src: "{{ docker_jfrog_xray_docker_compose_folder }}/docker-compose.yaml"
-  register: docker_jfrog_xray_slurp_docker_compose
+- name: add tasks to modify the docker-compose.yaml file
+  include_tasks: modify_docker_compose.yml
 
-- name: convert the slurped docker-compose to yaml
-  ansible.builtin.set_fact:
-    docker_jfrog_xray_docker_compose_yaml: "{{ docker_jfrog_xray_slurp_docker_compose['content'] | b64decode | from_yaml }}"
-    docker_jfrog_xray_docker_compose_services_yaml: {}
+- name: add tasks to modify the docker-compose-postgres.yaml file
+  include_tasks: modify_docker_compose_postgres.yml
 
-- name: remove the mongodb service
-  ansible.builtin.set_fact:
-    docker_jfrog_xray_docker_compose_services_yaml: "{{ docker_jfrog_xray_docker_compose_services_yaml | combine({item.key: item.value})}}"
-  when: "{{ item.key not in ['mongodb'] }}"
-  with_dict: "{{ docker_jfrog_xray_docker_compose_yaml['services'] }}"
-
-- name: peice together the cleaned docker-compose yaml
-  ansible.builtin.set_fact:
-    docker_jfrog_xray_docker_compose_clean_yaml:
-      version: "{{ docker_jfrog_xray_docker_compose_yaml['version'] }}"
-      services: "{{ docker_jfrog_xray_docker_compose_services_yaml }}"
-    docker_jfrog_xray_docker_compose_xray_router_envs:
-      services:
-        router:
-          environment:
-            - "JF_SHARED_JFROGURL={{ docker_jfrog_xray_shared_jfrog_url }}"
-            - "JF_SHARED_SECURITY_JOINKEY={{ docker_jfrog_xray_shared_security_joinkey }}"
-            - "JF_SHARED_NODE_IP={{ ansible_default_ipv4.address }}"
-
-- name:
-  ansible.builtin.set_fact:
-    docker_jfrog_xray_docker_compose_clean_add_env_yaml: "{{ docker_jfrog_xray_docker_compose_clean_yaml | combine(docker_jfrog_xray_docker_compose_xray_router_envs, recursive=true) }}"
-
-- name: write the docker-compose.yaml back out
-  ansible.builtin.copy:
-    content: "{{ docker_jfrog_xray_docker_compose_clean_add_env_yaml | to_nice_yaml }}"
-    dest: "{{ docker_jfrog_xray_docker_compose_folder }}/docker-compose.yaml"
-
-- name: replace the postgres password
-  # I tried putting this variable in the .env file, but the container didn't seem to get it.
-  ansible.builtin.lineinfile:
-    path: "{{ docker_jfrog_xray_docker_compose_folder }}/docker-compose-postgres.yaml"
-    regexp: "      - POSTGRES_PASSWORD=__REPLACE_POSTGRES_PASSWORD__"
-    line: "      - POSTGRES_PASSWORD={{ docker_jfrog_xray_postgres_password }}"
-
-- name: replace ROOT_DATA_DIR in .env
-  ansible.builtin.lineinfile:
-    path: "{{ docker_jfrog_xray_docker_compose_folder }}/.env"
-    regexp: 'ROOT_DATA_DIR=.*'
-    line: "ROOT_DATA_DIR={{ docker_jfrog_xray_data_dir }}"
-
-- name: replace HOST_ID in .env
-  ansible.builtin.lineinfile:
-    path: "{{ docker_jfrog_xray_docker_compose_folder }}/.env"
-    regexp: 'HOST_ID=.*'
-    line: "HOST_ID={{ inventory_hostname }}"
-
-- name: replace JF_THIRD_PARTY_BIND_IP in .env
-  ansible.builtin.lineinfile:
-    path: "{{ docker_jfrog_xray_docker_compose_folder }}/.env"
-    regexp: 'JF_THIRD_PARTY_BIND_IP=.*'
-    line: "JF_THIRD_PARTY_BIND_IP={{ ansible_default_ipv4.address }}"
-
-- name: get .env contents
-  ansible.builtin.slurp:
-    src: "{{ docker_jfrog_xray_docker_compose_folder }}/.env"
-  register: docker_jfrog_xray_slurp_env
-
-- name: get XRAY_USER from .env
-  ansible.builtin.set_fact:
-    docker_jfrog_xray_user: "{{ docker_jfrog_xray_slurp_env['content'] | b64decode | regex_findall('XRAY_USER=(.+)') | first }}"
+ name: add tasks to modify the .env file
+  include_tasks: modify_env.yml
 
 - name: copy certificates to trust locally
   become: yes
@@ -210,7 +147,7 @@
     # Using "{{ docker_jfrog_xray_data_dir }}/var/etc/security/keys/trusted" didn't work for whatever reason.
     # Dumping the certs in /etc/ssl/certs seems to work though. A mounted volume would be better, but there's already stuff in this folder, and
     # I don't want to modify the docker-compose.yml file to add the volume either. A docker copy is the best solution.
-    cmd: "docker cp {{ item }} {{ docker_jfrog_xray_docker_compose_clean_yaml['services']['router']['container_name'] }}:/etc/ssl/certs/"
+    cmd: "docker cp {{ item }} {{ docker_jfrog_xray_docker_compose_xray_router_container_name }}:/etc/ssl/certs/"
     executable: /bin/bash
   with_fileglob:
     - "{{ docker_jfrog_xray_docker_compose_folder }}/certs/*"

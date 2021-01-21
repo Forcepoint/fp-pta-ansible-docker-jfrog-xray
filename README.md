@@ -9,7 +9,7 @@ challenging to work with in a Configuration Management fashion as the script is 
 to be run interactively. It can be run without intervention, but you need to figure out what
 variables to set ahead of time, which is what has been done here.
 
-This sets up everything needed on a single system via docker-compose.
+This sets up everything needed on a single system via docker-compose with postgres as the database.
 It does not allow the setup of a postgres database on another system.
 
 Refer to the Jfrog Guides [Xray and Artifactory One to One Pairing](https://www.jfrog.com/confluence/display/JFROG/Xray+and+Artifactory+One+to+One+Pairing),

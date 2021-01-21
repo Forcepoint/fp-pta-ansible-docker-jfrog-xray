@@ -1,0 +1,9 @@
+---
+
+# Treat modifying the docker-compose-postgres.yaml file like a black box. It will help keep the main.yml file simpler.
+
+- name: reference the postgres password variable from the .env file
+  ansible.builtin.replace:
+    path: "{{ docker_jfrog_xray_docker_compose_folder }}/docker-compose-postgres.yaml"
+    regexp: "__REPLACE_POSTGRES_PASSWORD__"
+    line: "${POSTGRES_PASSWORD}"

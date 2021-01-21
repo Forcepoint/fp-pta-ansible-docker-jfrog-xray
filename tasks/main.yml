@@ -148,7 +148,7 @@
 
 - name: copy the third-party files into the application folder
   ansible.builtin.copy:
-    src: "{{ docker_jfrog_xray_docker_compose_folder }}/third-party/"
+    src: "{{ docker_jfrog_xray_docker_compose_folder }}/third-party"
     dest: "{{ docker_jfrog_xray_data_dir }}/app"
     remote_src: yes
 

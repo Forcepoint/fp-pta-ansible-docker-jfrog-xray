@@ -66,16 +66,12 @@
     content: "{{ docker_jfrog_xray_docker_compose_clean_yaml | to_nice_yaml }}"
     dest: "{{ docker_jfrog_xray_docker_compose_folder }}/docker-compose.yaml"
 
-- name: remove lines with __REPLACE
-  # At the time of this writing, the only one should be __REPLACE_POSTGRES_PASSWORD__ in docker-compose-postgresql.yaml
+- name: replace the postgres password
+  # I tried putting this variable in the .env file, but the container didn't seem to get it.
   ansible.builtin.lineinfile:
-    path: "{{ docker_jfrog_xray_docker_compose_folder }}/{{ item }}"
-    regexp: '.*__REPLACE.*'
-    state: absent
-  loop:
-    - docker-compose.yaml
-    - docker-compose-postgres.yaml
-    - docker-compose-rabbitmq.yaml
+    path: "{{ docker_jfrog_xray_docker_compose_folder }}/docker-compose-postgres.yaml"
+    regexp: "      - POSTGRES_PASSWORD=__REPLACE_POSTGRES_PASSWORD__"
+    line: "      - POSTGRES_PASSWORD={{ docker_jfrog_xray_postgres_password }}"
 
 - name: replace ROOT_DATA_DIR in .env
   ansible.builtin.lineinfile:
@@ -111,12 +107,6 @@
   ansible.builtin.lineinfile:
     path: "{{ docker_jfrog_xray_docker_compose_folder }}/.env"
     line: "JF_SHARED_NODE_IP={{ ansible_default_ipv4.address }}"
-    insertafter: EOF
-
-- name: add POSTGRES_PASSWORD in .env
-  ansible.builtin.lineinfile:
-    path: "{{ docker_jfrog_xray_docker_compose_folder }}/.env"
-    line: "POSTGRES_PASSWORD={{ docker_jfrog_xray_postgres_password }}"
     insertafter: EOF
 
 - name: get .env contents

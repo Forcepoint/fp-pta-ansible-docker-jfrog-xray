@@ -43,12 +43,6 @@
     - templates/docker-compose-postgres.yaml
     - templates/docker-compose-rabbitmq.yaml
 
-- name: add tasks to modify the docker-compose.yaml file
-  include_tasks: modify_docker_compose.yml
-
-- name: add tasks to modify the docker-compose-postgres.yaml file
-  include_tasks: modify_docker_compose_postgres.yml
-
 - name: add tasks to modify the .env file
   include_tasks: modify_env.yml
 
@@ -77,6 +71,12 @@
     group: "{{ docker_jfrog_xray_user }}"
   loop: "{{ docker_jfrog_xray_certs_to_trust }}"
   when: docker_jfrog_xray_certs_to_trust is defined
+
+- name: add tasks to modify the docker-compose.yaml file
+  include_tasks: modify_docker_compose.yml
+
+- name: add tasks to modify the docker-compose-postgres.yaml file
+  include_tasks: modify_docker_compose_postgres.yml
 
 - name: create the application folder for third-party
   become: yes

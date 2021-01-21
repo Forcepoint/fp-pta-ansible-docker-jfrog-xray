@@ -67,7 +67,6 @@
     mode: 0700
     owner: "999"
     group: "999"
-    recurse: yes
 
 - name: locally copy certificates to trust
   become: yes

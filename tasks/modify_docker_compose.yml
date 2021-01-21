@@ -55,7 +55,7 @@
     docker_jfrog_xray_docker_compose_xray_router_volumes:
       services:
         router:
-          volumes: "{{ docker_jfrog_xray_docker_compose_xray_router_list_volumes }}"
+          volumes: "{{ docker_jfrog_xray_docker_compose_xray_router_volumes_list }}"
   when: docker_jfrog_xray_certs_to_trust is defined
 
 - name: combine the new volumes into the docker compose

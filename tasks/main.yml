@@ -1,12 +1,6 @@
 ---
 # tasks file for docker-jfrog-xray
 
-- name: clean out any previous docker_compose folder
-  become: yes
-  ansible.builtin.file:
-    path: "{{ docker_jfrog_xray_docker_compose_folder }}/"
-    state: absent
-
 - name: create the docker_compose folder
   become: yes
   ansible.builtin.file:
@@ -143,17 +137,28 @@
     - var/data
     - var/etc
 
-- name: create the application folders for third-party
+- name: create the application folder for third-party
   become: yes
   ansible.builtin.file:
-    path: "{{ docker_jfrog_xray_data_dir }}/{{ item }}"
+    path: "{{ docker_jfrog_xray_data_dir }}/app"
     state: directory
     mode: 0700
     owner: "999"
     group: "999"
+
+- name: copy the third-party files into the application folder
+  ansible.builtin.copy:
+    src: "{{ docker_jfrog_xray_docker_compose_folder }}/third-party/"
+    dest: "{{ docker_jfrog_xray_data_dir }}/app"
+    remote_src: yes
+
+- name: ensure the third-party files have the right permissions
+  become: yes
+  ansible.builtin.file:
+    path: "{{ docker_jfrog_xray_data_dir }}/app"
+    owner: "999"
+    group: "999"
     recurse: yes
-  with_items:
-    - app/third-party/rabbitmq
 
 - name: pull docker postgres
   ansible.builtin.shell:

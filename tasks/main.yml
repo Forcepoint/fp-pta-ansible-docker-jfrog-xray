@@ -54,10 +54,21 @@
     docker_jfrog_xray_docker_compose_clean_yaml:
       version: "{{ docker_jfrog_xray_docker_compose_yaml['version'] }}"
       services: "{{ docker_jfrog_xray_docker_compose_services_yaml }}"
+    docker_jfrog_xray_docker_compose_xray_router_envs:
+      services:
+        router:
+          environment:
+            - "JF_SHARED_JFROGURL={{ docker_jfrog_xray_shared_jfrog_url }}"
+            - "JF_SHARED_SECURITY_JOINKEY={{ docker_jfrog_xray_shared_security_joinkey }}"
+            - "JF_SHARED_NODE_IP={{ ansible_default_ipv4.address }}"
+
+- name:
+  ansible.builtin.set_fact:
+    docker_jfrog_xray_docker_compose_clean_add_env_yaml: "{{ docker_jfrog_xray_docker_compose_clean_yaml | combine(docker_jfrog_xray_docker_compose_xray_router_envs, recursive=true) }}"
 
 - name: write the docker-compose.yaml back out
   ansible.builtin.copy:
-    content: "{{ docker_jfrog_xray_docker_compose_clean_yaml | to_nice_yaml }}"
+    content: "{{ docker_jfrog_xray_docker_compose_clean_add_env_yaml | to_nice_yaml }}"
     dest: "{{ docker_jfrog_xray_docker_compose_folder }}/docker-compose.yaml"
 
 - name: replace the postgres password
@@ -84,24 +95,6 @@
     path: "{{ docker_jfrog_xray_docker_compose_folder }}/.env"
     regexp: 'JF_THIRD_PARTY_BIND_IP=.*'
     line: "JF_THIRD_PARTY_BIND_IP={{ ansible_default_ipv4.address }}"
-
-- name: add JF_SHARED_JFROGURL in .env
-  ansible.builtin.lineinfile:
-    path: "{{ docker_jfrog_xray_docker_compose_folder }}/.env"
-    line: "JF_SHARED_JFROGURL={{ docker_jfrog_xray_shared_jfrog_url }}"
-    insertafter: EOF
-
-- name: add JF_SHARED_SECURITY_JOINKEY in .env
-  ansible.builtin.lineinfile:
-    path: "{{ docker_jfrog_xray_docker_compose_folder }}/.env"
-    line: "JF_SHARED_SECURITY_JOINKEY={{ docker_jfrog_xray_shared_security_joinkey }}"
-    insertafter: EOF
-
-- name: add JF_SHARED_NODE_IP in .env
-  ansible.builtin.lineinfile:
-    path: "{{ docker_jfrog_xray_docker_compose_folder }}/.env"
-    line: "JF_SHARED_NODE_IP={{ ansible_default_ipv4.address }}"
-    insertafter: EOF
 
 - name: get .env contents
   ansible.builtin.slurp:

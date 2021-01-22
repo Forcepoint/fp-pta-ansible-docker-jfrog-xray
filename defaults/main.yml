@@ -2,8 +2,4 @@
 # defaults file for docker-jfrog-xray
 
 docker_jfrog_xray_download_host: https://releases.jfrog.io   # The host to download the docker-compose release from.
-docker_jfrog_xray_tag_jfrog_xray: 3.15.1                     # 2020-12-30 This is an official Jfrog Xray release. https://bintray.com/jfrog/product/xray/view#
-docker_jfrog_xray_tag_jfrog_router: 1.4.3                    # 2020-08-30 This is an official release from Jfrog.
-docker_jfrog_xray_tag_jfrog_rabbitmq: 3.8.9-management       # 2020-12-08 This is an official release from Jfrog, but my guess is that it matched the RabbitMQ release on 12/8. https://hub.docker.com/_/rabbitmq
-docker_jfrog_xray_tag_jfrog_postgres: 12.5-alpine            # 2020-12-29 This is an official release from Jfrog, and even though the hash doesn't match the Postgres release, I bet it's the same. https://www.postgresql.org/ftp/source/ https://hub.docker.com/_/postgres
 docker_jfrog_xray_postgresql_migrate: no                     # When this is yes, the database is extracted, a new container spun up in its place, and the data reimported. This is run by default when the postgresql tag is changed.

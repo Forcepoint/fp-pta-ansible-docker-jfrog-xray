@@ -86,6 +86,9 @@
 - name: add tasks to modify the docker-compose-postgres.yaml file
   include_tasks: modify_docker_compose_postgres.yml
 
+- name: add tasks to modify the system.yaml file
+  include_tasks: modify_system.yml
+
 - name: create the application folder for third-party
   become: yes
   ansible.builtin.file:

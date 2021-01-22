@@ -23,21 +23,6 @@
     docker_jfrog_xray_docker_compose_yaml_new:
       version: "{{ docker_jfrog_xray_docker_compose_yaml['version'] }}"
       services: "{{ docker_jfrog_xray_docker_compose_services_yaml }}"
-    docker_jfrog_xray_docker_compose_xray_router_list_envs_new:
-      - "JF_SHARED_JFROGURL=${JF_SHARED_JFROGURL}"
-      - "JF_SHARED_SECURITY_JOINKEY=${JF_SHARED_SECURITY_JOINKEY}"
-      - "JF_SHARED_NODE_IP=${JF_SHARED_NODE_IP}"
-
-- name: place the environment variables into the docker-compose structure
-  ansible.builtin.set_fact:
-    docker_jfrog_xray_docker_compose_xray_router_envs:
-      services:
-        router:
-          environment: "{{ docker_jfrog_xray_docker_compose_xray_router_list_envs_new + docker_jfrog_xray_docker_compose_yaml_new['services']['router']['environment'] }}"
-
-- name: combine the new environment variables into the docker compose
-  ansible.builtin.set_fact:
-    docker_jfrog_xray_docker_compose_yaml_new: "{{ docker_jfrog_xray_docker_compose_yaml_new | combine(docker_jfrog_xray_docker_compose_xray_router_envs, recursive=true) }}"
 
 - name: get existing router volumes
   ansible.builtin.set_fact:

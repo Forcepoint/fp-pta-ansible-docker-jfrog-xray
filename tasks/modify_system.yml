@@ -48,6 +48,8 @@
         database:
           type: postgresql
           driver: org.postgresql.Driver
+          url: "postgres://{{ ansible_default_ipv4.address }}:5432/xraydb?sslmode=disable"
+          username: "{{ docker_jfrog_xray_postgres_user }}"
           password: "{{ docker_jfrog_xray_postgres_password }}"
         rabbitMq:
           password: "{{ docker_jfrog_xray_rabbitmq_password }}"
@@ -55,7 +57,7 @@
         jfrogUrl: "{{ docker_jfrog_xray_shared_jfrog_url }}"
       router:
         entrypoints:
-          externalPort: "{{ docker_jfrog_xray_router_entrypoints_externalport }}"
+          externalPort: "{{ docker_jfrog_xray_router_entrypoints_externalport | int }}"
 
 - name: combine the additional yaml structure with the system.yaml
   ansible.builtin.set_fact:

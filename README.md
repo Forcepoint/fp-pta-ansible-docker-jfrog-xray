@@ -28,7 +28,6 @@ Run the role docker-host on the host.
 * docker_jfrog_xray_version: The overall version of Jfrog Xray to setup with docker-compose.
 * docker_jfrog_xray_data_dir: The path on the docker host to store all the data which should be persistent.
 * docker_jfrog_xray_postgres_password: The password for the Postgres user. This should be vaulted.
-* docker_jfrog_xray_rabbitmq_password: The password for RabbitMQ. This should be vaulted.
 * docker_jfrog_xray_shared_jfrog_url: The URL address of the JFrog Platform Instance to connect with. 
   You can copy the JFrog URL from Admin > Security > Settings.
 * docker_jfrog_xray_shared_security_joinkey: The secret key used to establish trust between services in the JFrog Platform.

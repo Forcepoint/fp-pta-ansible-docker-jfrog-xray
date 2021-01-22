@@ -1,6 +1,21 @@
 ---
 # tasks file for docker-jfrog-xray
 
+- name: set the file handle allocation limits
+  become: yes
+  # https://www.jfrog.com/confluence/display/JFROG/System+Requirements?utm_source=platform&utm_content=installer#SystemRequirements-Xray-FileHandleAllocationLimit
+  ansible.builtin.lineinfile:
+    path: "/etc/security/limits.conf"
+    line: "{{ item.user }} {{ item.type }} nofile 100000"
+    insertafter: EOF
+  loop:
+    - { user: 'root', type: 'hard' }
+    - { user: 'root', type: 'soft' }
+    - { user: 'xray', type: 'hard' }
+    - { user: 'xray', type: 'soft' }
+    - { user: 'postgres', type: 'hard' }
+    - { user: 'postgres', type: 'soft' }
+
 - name: create the docker_compose folder
   become: yes
   ansible.builtin.file:

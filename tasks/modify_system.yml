@@ -57,7 +57,7 @@
         jfrogUrl: "{{ docker_jfrog_xray_shared_jfrog_url }}"
       router:
         entrypoints:
-          externalPort: "{{ docker_jfrog_xray_router_entrypoints_externalport | int }}"
+          externalPort: "{{ docker_jfrog_xray_router_entrypoints_externalport }}"
 
 - name: combine the additional yaml structure with the system.yaml
   ansible.builtin.set_fact:
@@ -70,3 +70,14 @@
     dest: "{{ docker_jfrog_xray_system_yaml_path }}"
     owner: "{{ docker_jfrog_xray_user }}"
     group: "{{ docker_jfrog_xray_user }}"
+
+# For whatever reason, the router.entrypoints.externalPort value is output as a string with single quotes around it.
+# The jfrog containers choke on it and say...
+#   .router.entrypoints.externalPort value is of wrong data type. Correct type should be !!int
+#   yaml validation failed
+# To get around this, we'll just do a dumb string replacement on the file.
+  ansible.builtin.replace:
+    path: "{{ docker_jfrog_xray_system_yaml_path }}"
+    regexp: "externalPort: '{{ docker_jfrog_xray_router_entrypoints_externalport }}'"
+    replace: "externalPort: {{ docker_jfrog_xray_router_entrypoints_externalport }}"
+

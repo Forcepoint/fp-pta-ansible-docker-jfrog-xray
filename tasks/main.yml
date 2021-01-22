@@ -51,7 +51,7 @@
   ansible.builtin.file:
     path: "{{ docker_jfrog_xray_data_dir }}/{{ item }}"
     state: directory
-    mode: 0700
+    mode: 0750
     owner: "{{ docker_jfrog_xray_user }}"
     group: "{{ docker_jfrog_xray_user }}"
   with_items:

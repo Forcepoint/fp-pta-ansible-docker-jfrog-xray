@@ -19,13 +19,13 @@
 
 - name: get the postgres db name
   ansible.builtin.set_fact:
-    docker_jfrog_xray_postgres_db_name: "{{ item | regex_search('POSTGRES_DB=(.+)') }}"
+    docker_jfrog_xray_postgres_db_name: "{{ item | regex_search('POSTGRES_DB=(.+)', '\\1') | first }}"
   with_items: "{{ docker_jfrog_xray_docker_compose_postgres_yaml['services']['postgres']['environment'] }}"
   when: '"POSTGRES_DB=" in item'
 
 - name: get the postgres user name
   ansible.builtin.set_fact:
-    docker_jfrog_xray_postgres_user: "{{ item | regex_search('POSTGRES_USER=(.+)') }}"
+    docker_jfrog_xray_postgres_user: "{{ item | regex_search('POSTGRES_USER=(.+)', '\\1') | first }}"
   with_items: "{{ docker_jfrog_xray_docker_compose_postgres_yaml['services']['postgres']['environment'] }}"
   when: '"POSTGRES_USER=" in item'
 

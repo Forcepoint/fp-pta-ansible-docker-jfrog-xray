@@ -23,7 +23,7 @@
     remote_src: yes
     owner: "{{ docker_jfrog_xray_user }}"
     group: "{{ docker_jfrog_xray_user }}"
-  when: docker_jfrog_xray_system_yaml_stat.stat.exists
+  when: not docker_jfrog_xray_system_yaml_stat.stat.exists
 
 - name: get the system.yaml contents
   ansible.builtin.slurp:

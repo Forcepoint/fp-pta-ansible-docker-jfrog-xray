@@ -52,7 +52,3 @@
   ansible.builtin.copy:
     content: "{{ docker_jfrog_xray_docker_compose_yaml_new | to_nice_yaml }}"
     dest: "{{ docker_jfrog_xray_docker_compose_folder }}/docker-compose.yaml"
-
-- name: save the router container name
-  ansible.builtin.set_fact:
-    docker_jfrog_xray_docker_compose_xray_router_container_name: "{{ docker_jfrog_xray_docker_compose_yaml_new['services']['router']['container_name'] }}"

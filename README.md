@@ -6,8 +6,14 @@ The Jfrog team provides numerous means to install Xray. The method being used he
 docker compose. In particular, the Jfrog team provides a helper script that is meant
 to remove the difficulties of working with a complex product, but this makes it slightly
 challenging to work with in a Configuration Management fashion as the script is meant
-to be run interactively. It can be run without intervention, but you need to figure out what
-variables to set ahead of time, which is what has been done here.
+to be run interactively. It was attempted to provide environment variables to achieve the needed
+configuration, but it was insufficient. It is also possible to produce an answer file and feed 
+that into the script, but it was deemed unreliable as the questions in an an interactive script
+are likely to change from release to release. This ansible role avoids running the config script,
+and is an effective replacement for the script, albeit this is a specific configuration as desired
+by PTA (single system, everything running in docker, application data is on secondary drive,
+setup can be rerun without issue via ansible, VM can be replaced and application still comes
+back up with ansible role, etc).
 
 This sets up everything needed on a single system via docker-compose with postgres as the database.
 It does not allow the setup of a postgres database on another system.

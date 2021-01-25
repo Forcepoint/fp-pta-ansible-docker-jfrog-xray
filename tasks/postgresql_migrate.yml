@@ -55,8 +55,8 @@
     path: "{{ docker_jfrog_xray_postgres_data_dir }}"
     state: directory
     mode: 0700
-    owner: "{{ docker_jfrog_xray_user }}"
-    group: "{{ docker_jfrog_xray_user }}"
+    owner: "999"
+    group: "999"
 
 - name: ensure the data dump file is readable
   ansible.builtin.file:

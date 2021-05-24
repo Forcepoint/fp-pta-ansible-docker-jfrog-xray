@@ -77,7 +77,7 @@
 - name: create the application folder for postgres
   become: yes
   ansible.builtin.file:
-    path: "{{ docker_jfrog_xray_data_dir }}/var/data/postgres/data"
+    path: "{{ docker_jfrog_xray_postgres_data_dir }}"
     state: directory
     mode: 0700
     owner: "999"

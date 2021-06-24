@@ -83,7 +83,19 @@
     owner: "999"
     group: "999"
 
-- name: locally copy certificates to trust
+- name: locally copy certificates to trust 1
+  become: yes
+  ansible.builtin.copy:
+    src: "{{ item.path }}"
+    dest: "{{ docker_jfrog_xray_data_dir }}/var/certs"
+    remote_src: "{{ item.remote_src }}"
+    mode: 0744
+    owner: "{{ docker_jfrog_xray_user }}"
+    group: "{{ docker_jfrog_xray_user }}"
+  loop: "{{ docker_jfrog_xray_certs_to_trust }}"
+  when: docker_jfrog_xray_certs_to_trust is defined
+
+- name: locally copy certificates to trust 2
   become: yes
   ansible.builtin.copy:
     src: "{{ item.path }}"

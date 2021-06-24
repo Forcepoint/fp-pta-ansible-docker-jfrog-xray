@@ -87,7 +87,7 @@
   become: yes
   ansible.builtin.copy:
     src: "{{ item.path }}"
-    dest: "{{ docker_jfrog_xray_data_dir }}/var/certs"
+    dest: "{{ docker_jfrog_xray_data_dir }}/var/etc/security/keys/trusted"
     remote_src: "{{ item.remote_src }}"
     mode: 0744
     owner: "{{ docker_jfrog_xray_user }}"

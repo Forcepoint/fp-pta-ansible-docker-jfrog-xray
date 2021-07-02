@@ -11,7 +11,7 @@
 
 - name: stop the rabbitmq container
   ansible.builtin.shell:
-    cmd: docker-compose stop --file docker-compose-rabbitmq.yaml --project-name xray-rabbitmq
+    cmd: docker-compose --file docker-compose-rabbitmq.yaml --project-name xray-rabbitmq stop
     chdir: "{{ docker_jfrog_xray_docker_compose_folder }}"
     executable: /bin/bash
 

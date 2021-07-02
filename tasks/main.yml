@@ -100,6 +100,16 @@
   loop: "{{ docker_jfrog_xray_certs_to_trust }}"
   when: docker_jfrog_xray_certs_to_trust is defined
 
+- name: create the certs folder
+  become: yes
+  ansible.builtin.file:
+    path: "{{ docker_jfrog_xray_data_dir }}/var/etc/security/keys/trusted"
+    state: directory
+    mode: 0755
+    owner: "{{ docker_jfrog_xray_user }}"
+    group: "{{ docker_jfrog_xray_user }}"
+  when: docker_jfrog_xray_certs_to_trust is defined
+
 - name: locally copy certificates to trust 2
   become: yes
   ansible.builtin.copy:

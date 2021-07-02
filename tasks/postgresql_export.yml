@@ -5,7 +5,7 @@
 
 - name: stop the xray containers
   ansible.builtin.shell:
-    cmd: docker-compose stop --project-name xray
+    cmd: docker-compose --project-name xray stop
     chdir: "{{ docker_jfrog_xray_docker_compose_folder }}"
     executable: /bin/bash
 

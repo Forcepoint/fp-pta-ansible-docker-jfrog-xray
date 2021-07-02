@@ -49,12 +49,14 @@
     state: absent
 
 - name: backup the mapped volume for postgresql
+  become: yes
   ansible.builtin.copy:
     src: "{{ docker_jfrog_xray_postgres_data_dir }}"
     remote_src: yes
     dest: "{{ docker_jfrog_xray_postgres_backup_dir }}"
 
 - name: delete the mapped volume for postgresql
+  become: yes
   ansible.builtin.file:
     path: "{{ docker_jfrog_xray_postgres_data_dir }}"
     state: absent
@@ -69,6 +71,7 @@
     group: "999"
 
 - name: ensure the data dump file is readable
+  become: yes
   ansible.builtin.file:
     path: "{{ docker_jfrog_xray_docker_compose_folder }}/dump.sql"
     mode: 0444

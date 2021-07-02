@@ -2,4 +2,3 @@
 # defaults file for docker-jfrog-xray
 
 docker_jfrog_xray_download_host: https://releases.jfrog.io   # The host to download the docker-compose release from.
-docker_jfrog_xray_postgresql_migrate: no                     # When this is yes, the database is extracted, a new container spun up in its place, and the data reimported. This is run by default when the postgresql tag is changed.

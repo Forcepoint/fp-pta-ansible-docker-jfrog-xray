@@ -39,7 +39,7 @@
 
 - name: stop the postgres container
   ansible.builtin.shell:
-    cmd: docker-compose stop --file docker-compose-postgres.yaml --project-name xray-postgres
+    cmd: docker-compose --file docker-compose-postgres.yaml --project-name xray-postgres stop
     chdir: "{{ docker_jfrog_xray_docker_compose_folder }}"
     executable: /bin/bash
 

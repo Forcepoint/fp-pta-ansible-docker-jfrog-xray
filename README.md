@@ -38,16 +38,19 @@ Run the role docker-host on the host.
   You can copy the JFrog URL from Admin > Security > Settings.
 * docker_jfrog_xray_shared_security_joinkey: The secret key used to establish trust between services in the JFrog Platform.
   You can copy the Join Key from Admin > Security > Settings.
+* docker_jfrog_xray_postgresql_migrate: Set this to `yes` when you change a major version of postgresql.
+  Once your upgrade is done, be sure to change this back to `no`. When yes, the database is extracted
+  and the data imported into a new container. This is required so you're aware of what your upgrade is doing.
+  This can cause problems if not handled correctly.
+  It is difficult to know when this is needed. You have to examine the docker-compose file to know 
+  if this should be run.
+  Rule of thumb is to have this run whenever there is a major version change. 
+  See https://www.postgresql.org/docs/current/upgrading.html
 
 ### OPTIONAL
 
 * docker_jfrog_xray_download_host: The host to download the docker-compose release from.
   Useful if you're using Artifactory and want to add a remote for https://releases.jfrog.io
-* docker_jfrog_xray_postgresql_migrate: When yes, the database is extracted, a new container 
-  spun up in its place, and the data reimported. Without examining the version of
-  postgres specified in the docker-compose, it's hard to know when this should be run.
-  Rule of thumb is to have this run whenever there is a major version change. 
-  See https://www.postgresql.org/docs/current/upgrading.html
 * docker_jfrog_xray_certs_to_trust: A list of certificates to trust and whether they are remote or not.
   Useful if you're using a private CA for Artifactory's web certificate.
 

@@ -82,7 +82,8 @@ Make sure you get that password and joinkey vaulted so they're not in plain text
           - { path: 'files/rhel_cnd.pem', remote_src: no }
         docker_jfrog_xray_system_yaml_custom:
           server:
-            maxOpenConnections: 60
+            database:
+              maxOpenConnections: 60
       roles:
          - role: docker-jfrog-xray
 

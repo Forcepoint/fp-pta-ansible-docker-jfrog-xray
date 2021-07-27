@@ -53,6 +53,8 @@ Run the role docker-host on the host.
   Useful if you're using Artifactory and want to add a remote for https://releases.jfrog.io
 * docker_jfrog_xray_certs_to_trust: A list of certificates to trust and whether they are remote or not.
   Useful if you're using a private CA for Artifactory's web certificate.
+* docker_jfrog_xray_system_yaml_custom: If so desired, you may specify additional settings for the system.yaml
+  file here. See the Jfrog documentation [here](https://www.jfrog.com/confluence/display/JFROG/Xray+System+YAML).
 
 Make sure you get any passwords vaulted so they're not in plain text!
 
@@ -78,6 +80,9 @@ Make sure you get that password and joinkey vaulted so they're not in plain text
           # The RHEL CND certificate. It's not included in the Java truststore by default.
           # May make more sense to get it from the playbook than to bake it into the base image. Use remote_src no.
           - { path: 'files/rhel_cnd.pem', remote_src: no }
+        docker_jfrog_xray_system_yaml_custom:
+          server:
+            maxOpenConnections: 60
       roles:
          - role: docker-jfrog-xray
 

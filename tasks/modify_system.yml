@@ -58,6 +58,11 @@
         entrypoints:
           externalPort: "{{ docker_jfrog_xray_router_entrypoints_externalport }}"
 
+- name: combine the custom provided yaml structure with the system.yaml
+  ansible.builtin.set_fact:
+    docker_jfrog_xray_system_yaml_new: "{{ docker_jfrog_xray_system_yaml | combine(docker_jfrog_xray_system_yaml_custom, recursive=true) }}"
+  when: docker_jfrog_xray_system_yaml_custom is defined
+
 - name: combine the additional yaml structure with the system.yaml
   ansible.builtin.set_fact:
     docker_jfrog_xray_system_yaml_new: "{{ docker_jfrog_xray_system_yaml | combine(docker_jfrog_xray_system_yaml_addition, recursive=true) }}"

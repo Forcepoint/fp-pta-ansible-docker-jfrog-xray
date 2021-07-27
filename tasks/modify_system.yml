@@ -65,7 +65,7 @@
 
 - name: combine the additional yaml structure with the system.yaml
   ansible.builtin.set_fact:
-    docker_jfrog_xray_system_yaml_new: "{{ docker_jfrog_xray_system_yaml | combine(docker_jfrog_xray_system_yaml_addition, recursive=true) }}"
+    docker_jfrog_xray_system_yaml_new: "{{ docker_jfrog_xray_system_yaml_new | combine(docker_jfrog_xray_system_yaml_addition, recursive=true) }}"
 
 - name: write the system.yaml back out
   become: yes
